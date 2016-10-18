@@ -25,12 +25,12 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 	}
 
 	@Override
-	public List<Task> getTasks(boolean isCompleted) {
+	public List<Task> getTasks(boolean completedOnly) {
 		List<Task> taskList = new LinkedList<>();
 		
 		try(Connection conn = ds.getConnection()){
 			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from tasklist_db.tasks where completed=" + Boolean.toString(isCompleted));
+			ResultSet rs = stmt.executeQuery("select * from tasklist_db.tasks where completed=" + Boolean.toString(completedOnly));
 			while(rs.next()){
 				Task task = new Task();
 				
@@ -46,12 +46,6 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 				task.setCompleted(rs.getBoolean("COMPLETED"));
 				
 				taskList.add(task);
-
-//				int id = rs.getInt("ID");
-//				String name = rs.getString("NAME");
-//				Timestamp deadline = rs.getTimestamp("DEADLINE");
-//				String priority = rs.getString("PRIORITY");
-//				String completed = rs.getString("COMPLETED");
 			}
 			rs.close();
 			stmt.close();
@@ -63,33 +57,43 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 	}
 
 	@Override
-	public void add(Task t) {
+	public int add(Task t) {
+		int addedRecordID = -1;
 		try(Connection conn = ds.getConnection()){
-			PreparedStatement stmt = conn.prepareStatement("insert into tasklist_db.tasks (name, deadline, priority) values (?, ?, ?)");
+			PreparedStatement stmt = conn.prepareStatement("insert into tasklist_db.tasks (name, deadline, priority) "
+															+ "values (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(1, t.getName());
 			stmt.setTimestamp(2, new Timestamp(t.getDeadline().getTime()));
 			stmt.setString(3, t.getPriority().name().toLowerCase());
 			stmt.executeUpdate();
+			ResultSet rs = stmt.getGeneratedKeys();
+			if(rs.next())
+				addedRecordID = rs.getInt(1);
+			rs.close();
 			stmt.close();
 		}
 		catch(SQLException e){
 			e.printStackTrace();
 		}
-
+		return addedRecordID;
 	}
 
 	@Override
-	public void markAsCompleted(int taskId) {
+	public boolean markAsCompleted(int taskId) {
+		boolean success = false;
 		try(Connection conn = ds.getConnection()){
 			PreparedStatement stmt = conn.prepareStatement("update tasklist_db.tasks set completed=? where id=?");
 			stmt.setBoolean(1, true);
 			stmt.setInt(2, taskId);
-			stmt.executeUpdate();
+			int r = stmt.executeUpdate();
+			if(r > 0)
+				success = true;
 			stmt.close();
 		}
 		catch(SQLException e){
 			e.printStackTrace();
 		}
+		return success;
 	}
 
 }

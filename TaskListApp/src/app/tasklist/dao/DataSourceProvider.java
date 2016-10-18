@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 
-public class DataSourceRetriever {
+public class DataSourceProvider {
 	public static DataSource getMySqlDataSource(){
 		MysqlDataSource mysqlDs = null;
 		//FileInputStream fis = null;
