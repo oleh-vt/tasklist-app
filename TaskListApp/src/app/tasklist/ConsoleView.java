@@ -1,23 +1,25 @@
 package app.tasklist;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import app.tasklist.model.Priority;
 import app.tasklist.model.Task;
 
 public class ConsoleView {
 	
+	private BufferedReader br;
 	private String datePattern = "yyyy-MM-dd HH:mm";
 	private Priority[] priorities;
 	
 	
-	public ConsoleView(String datePattern, Priority[] priorities) {
+	public ConsoleView(BufferedReader br, String datePattern,Priority[] priorities) {
 		super();
+		this.br = br;
 		this.datePattern = datePattern;
 		this.priorities = priorities;
 	}
@@ -31,7 +33,6 @@ public class ConsoleView {
 		
 		printMessage("Priority:");
 		
-		//Priority[] priorities = Priority.values();
 		for(int i = 0; i < priorities.length; i++){
 			printMessage(i+1 + " - " + priorities[i].name());
 		}
@@ -43,21 +44,10 @@ public class ConsoleView {
 		params.put("priority", Integer.toString(priority));
 		
 		return params;
-		
-//		SimpleDateFormat df = new SimpleDateFormat(datePattern);
-//		Task t = new Task();
-//		t.setName(name);
-//		
-//		t.setPriority(priorities[Integer.parseInt(priority)-1]);
-//		try {
-//			t.setDeadline(df.parse(deadline));
-//		} catch (ParseException e) {
-//			e.printStackTrace();
-//		}
-//		System.out.println(t.toString());
 	}
 	
 	public void printMainMenu(){
+		printMessage("===============================================================\n");
 		printMessage("1. Add a task");
 		printMessage("2. Show tasks");
 		printMessage("3. Exit");
@@ -86,54 +76,54 @@ public class ConsoleView {
 					t.getId(), t.getName(), t.getDeadline(), t.getPriority(), overdue);
 			System.out.println();
 		}
+		System.out.println();
 	}
 	
 	public int getUserChoice(int firstOption, int lastOption){
-		Scanner scanner = new Scanner(System.in);
 		int choice = -1; boolean success = false;
 		while(!success){
 			try{
-				choice = scanner.nextInt();
+				choice = getInputInt();
 				if(choice < firstOption || choice > lastOption)
-					throw new Exception("Please select in a range [" + firstOption + lastOption + "]");
+					throw new Exception("Please select in a range [" + firstOption + ".." + lastOption + "]");
 				success = true;
 			}
 			catch(Exception e){
 				printError("Error: " + e.getMessage());
 			}
-			finally{
-				scanner.nextLine();
-			}
-
 		}
-		scanner.close();
 		return choice;
 	}
 	
 	public String getInputString(){
-		Scanner scanner = new Scanner(System.in);
-		String input = scanner.nextLine();
-		scanner.nextLine();
-		scanner.close();
+		String input = null;
+		try{
+			input = br.readLine();
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
 		return input;
 	}
 	
 	public int getInputInt(){
-		Scanner scanner = new Scanner(System.in);
+		int input = -1;
 		boolean success = false;
-		int input = 0;
-		while (!success) {
-			try {
-				input = scanner.nextInt();
-				success = true;
-			} catch (InputMismatchException e) {
-				printError("Error: Integer numbers only!");
-			}
-			finally{
-				scanner.nextLine();
+		try{
+			while(!success){
+				String tmp = br.readLine();
+				try{
+					input = Integer.parseInt(tmp);
+					success = true;
+				}
+				catch(NumberFormatException e){
+					printError("Error: Integer numbers only!");
+				}
 			}
 		}
-		scanner.close();
+		catch(IOException e){
+			e.printStackTrace();
+		}
 		return input;
 	}
 	

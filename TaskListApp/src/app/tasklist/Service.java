@@ -50,6 +50,7 @@ public class Service {
 		
 		int createdId = taskRepo.add(task);
 		if(createdId != -1){
+			task.setId(createdId);
 			taskList.add(task);
 			return true;
 		}

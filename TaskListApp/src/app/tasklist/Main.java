@@ -1,5 +1,7 @@
 package app.tasklist;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 
@@ -18,21 +20,26 @@ public class Main {
 	
 	public static void main(String[] args) {
 		ITaskRepository tr = new TaskRepositoryJDBC(DataSourceProvider.getMySqlDataSource());
-		Service service = new Service(tr, dateFormat);
-		ConsoleView consoleView = new ConsoleView(dateFormat, Priority.values());
-		Main m = new Main(service, consoleView);
-		m.start();
+		try(BufferedReader br = new BufferedReader(new InputStreamReader(System.in))){
+			Service service = new Service(tr, dateFormat);
+			ConsoleView consoleView = new ConsoleView(br, dateFormat, Priority.values());
+			Main m = new Main(service, consoleView);
+			m.start(); 
+		}
+		catch(Exception e){/**/}
 	}
 	
 	
 	
-	 Main(Service service, ConsoleView cw) {
+	Main(Service service, ConsoleView cw) {
 		super();
 		this.service = service;
 		this.cw = cw;
 	}
 
+
 	void start(){
+		outer:
 		while(true){
 			cw.printMainMenu();
 			int choice = cw.getUserChoice(1, 3);
@@ -40,7 +47,9 @@ public class Main {
 			case 1:
 				Map<String, String> params = cw.readTask();
 				try {
-					service.addTask(params);
+					boolean r = service.addTask(params);
+					if(r)
+						cw.printMessage("The task has been added to the list");
 				} catch (Exception e) {
 					cw.printError(e.getMessage());
 				}
@@ -49,7 +58,8 @@ public class Main {
 				tasksSubmenu();
 				break;
 			case 3:
-				System.exit(0);
+				cw.printMessage("Bye-bye!");
+				break outer;
 			}
 		}
 		
@@ -73,13 +83,8 @@ public class Main {
 				completedOnly = true;
 				taskList = service.getTaskList(completedOnly);
 				cw.printTasks(taskList);
-				cw.printMessage("Press any key to return...");
-				System.console().readLine();
-//				try {
-//					System.in.read();
-//				} catch (IOException e) {
-//					e.printStackTrace();
-//				}
+				cw.printMessage("Press Enter to continue...");
+				cw.getInputString();
 				break;
 			case 3:
 				return;
@@ -87,32 +92,4 @@ public class Main {
 			
 		}
 	}
-	 
-//	 void showTasks(Scanner s){
-//		while(true){
-//			boolean findCompleted = false;
-//			List<Task> tasks = tr.getTasks(findCompleted);
-//			printTasks(tasks);
-//			cw.printShowSubmenu();
-//			int i = s.nextInt();
-//			switch(i){
-//			case 1:
-//				System.out.print("Enter task id: ");
-//				int id = s.nextInt();
-//				tr.markAsCompleted(id);
-//				break;
-//			case 2:
-//				findCompleted = true;
-//				List<Task> completedTasks = tr.getTasks(findCompleted);
-//				printTasks(completedTasks);
-//				System.out.print("Press any key to return...");
-//				System.console().readLine();
-//				break;
-//			case 3:
-//				return;
-//			}
-//			
-//		}
-//	}
-
 }
