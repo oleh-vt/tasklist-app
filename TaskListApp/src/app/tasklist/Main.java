@@ -15,8 +15,8 @@ public class Main {
 
 	private static final String dateFormat = "yyyy-MM-dd HH:mm";
 	
-	Service service;
-	ConsoleView cw;
+	private Service service;
+	private ConsoleView cw;
 	
 	public static void main(String[] args) {
 		ITaskRepository tr = new TaskRepositoryJDBC(DataSourceProvider.getMySqlDataSource());
@@ -29,17 +29,13 @@ public class Main {
 		catch(Exception e){/**/}
 	}
 	
-	
-	
 	Main(Service service, ConsoleView cw) {
 		super();
 		this.service = service;
 		this.cw = cw;
 	}
 
-
 	void start(){
-		outer:
 		while(true){
 			cw.printMainMenu();
 			int choice = cw.getUserChoice(1, 3);
@@ -59,10 +55,9 @@ public class Main {
 				break;
 			case 3:
 				cw.printMessage("Bye-bye!");
-				break outer;
+				return;
 			}
 		}
-		
 	}
 	
 	 void tasksSubmenu(){

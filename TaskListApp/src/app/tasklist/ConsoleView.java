@@ -24,7 +24,7 @@ public class ConsoleView {
 		this.priorities = priorities;
 	}
 
-	Map<String, String> readTask(){
+	public Map<String, String> readTask(){
 		printMessage("Task Name (30 symbols): ");
 		String name = getInputString();
 		
@@ -47,7 +47,7 @@ public class ConsoleView {
 	}
 	
 	public void printMainMenu(){
-		printMessage("===============================================================\n");
+		printMessage("=========================================================================\n");
 		printMessage("1. Add a task");
 		printMessage("2. Show tasks");
 		printMessage("3. Exit");

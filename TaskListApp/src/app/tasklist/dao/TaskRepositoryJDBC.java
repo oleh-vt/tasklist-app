@@ -27,10 +27,13 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 	@Override
 	public List<Task> getTasks(boolean completedOnly) {
 		List<Task> taskList = new LinkedList<>();
-		
-		try(Connection conn = ds.getConnection()){
-			Statement stmt = conn.createStatement();
-			ResultSet rs = stmt.executeQuery("select * from tasklist_db.tasks where completed=" + Boolean.toString(completedOnly));
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try{
+			conn = ds.getConnection();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery("select * from tasklist_db.tasks where completed=" + Boolean.toString(completedOnly));
 			while(rs.next()){
 				Task task = new Task();
 				
@@ -47,11 +50,15 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 				
 				taskList.add(task);
 			}
-			rs.close();
-			stmt.close();
+			
 		}
 		catch(SQLException e){
-			e.printStackTrace();
+			System.err.println("Error: SQLState = " + e.getSQLState() + " SQLCode = " + e.getErrorCode());
+		}
+		finally{
+			try {rs.close();} catch (Exception e)	{/*ignored*/}
+			try {stmt.close();} catch (Exception e)	{/*ignored*/}
+			try {conn.close();} catch (Exception e)	{/*ignored*/}
 		}
 		return taskList;
 	}
@@ -59,21 +66,30 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 	@Override
 	public int add(Task t) {
 		int addedRecordID = -1;
-		try(Connection conn = ds.getConnection()){
-			PreparedStatement stmt = conn.prepareStatement("insert into tasklist_db.tasks (name, deadline, priority) "
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		try{
+			conn = ds.getConnection();
+			stmt = conn.prepareStatement("insert into tasklist_db.tasks (name, deadline, priority) "
 															+ "values (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 			stmt.setString(1, t.getName());
 			stmt.setTimestamp(2, new Timestamp(t.getDeadline().getTime()));
 			stmt.setString(3, t.getPriority().name().toLowerCase());
 			stmt.executeUpdate();
-			ResultSet rs = stmt.getGeneratedKeys();
+			rs = stmt.getGeneratedKeys();
 			if(rs.next())
 				addedRecordID = rs.getInt(1);
 			rs.close();
 			stmt.close();
 		}
 		catch(SQLException e){
-			e.printStackTrace();
+			System.err.println("Error: SQLState = " + e.getSQLState() + " SQLCode = " + e.getErrorCode());
+		}
+		finally{
+			try {rs.close();} catch (Exception e)	{/*ignored*/}
+			try {stmt.close();} catch (Exception e)	{/*ignored*/}
+			try {conn.close();} catch (Exception e)	{/*ignored*/}
 		}
 		return addedRecordID;
 	}
@@ -81,8 +97,11 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 	@Override
 	public boolean markAsCompleted(int taskId) {
 		boolean success = false;
-		try(Connection conn = ds.getConnection()){
-			PreparedStatement stmt = conn.prepareStatement("update tasklist_db.tasks set completed=? where id=?");
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		try{
+			conn = ds.getConnection();
+			stmt = conn.prepareStatement("update tasklist_db.tasks set completed=? where id=?");
 			stmt.setBoolean(1, true);
 			stmt.setInt(2, taskId);
 			int r = stmt.executeUpdate();
@@ -91,7 +110,11 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 			stmt.close();
 		}
 		catch(SQLException e){
-			e.printStackTrace();
+			System.err.println("Error: SQLState = " + e.getSQLState() + " SQLCode = " + e.getErrorCode());
+		}
+		finally{
+			try {stmt.close();} catch (Exception e)	{/*ignored*/}
+			try {conn.close();} catch (Exception e)	{/*ignored*/}
 		}
 		return success;
 	}

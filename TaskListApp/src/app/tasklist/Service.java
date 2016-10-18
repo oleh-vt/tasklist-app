@@ -19,7 +19,7 @@ public class Service {
 	public Service(ITaskRepository tr, String datePattern){
 		this.taskRepo = tr;
 		this.datePattern = datePattern;
-		this.taskList = taskRepo.getTasks(false);
+		this.taskList = getTaskList(false);
 	}
 	
 	public List<Task> getTaskList(boolean completedOnly){
@@ -58,17 +58,17 @@ public class Service {
 	}
 	
 	public boolean markCompleted(int taskId){
-		boolean completed = taskRepo.markAsCompleted(taskId);
-		if(completed){
-			Iterator<Task> iter = taskList.iterator();
-			while(iter.hasNext()){
-				Task curr = iter.next();
-				if(curr.getId() == taskId){
+		Iterator<Task> iter = taskList.iterator();
+		while(iter.hasNext()){
+			Task curr = iter.next();
+			if(curr.getId() == taskId){
+				boolean completed = taskRepo.markAsCompleted(taskId);
+				if(completed){
 					iter.remove();
-					break;
+					return true;
 				}
+				break;
 			}
-			return true;
 		}
 		return false;
 	}
