@@ -15,17 +15,17 @@ import javax.sql.DataSource;
 import app.tasklist.model.Priority;
 import app.tasklist.model.Task;
 
-public class TaskRepositoryJDBC implements ITaskRepository {
+public class TaskRepositoryDB implements ITaskRepository {
 	
 	private DataSource ds;
 	
-	public TaskRepositoryJDBC(DataSource ds) {
+	public TaskRepositoryDB(DataSource ds) {
 		super();
 		this.ds = ds;
 	}
 
 	@Override
-	public List<Task> getTasks(boolean completedOnly) {
+	public List<Task> getTasks(boolean completedOnly) throws StorageAccessException {
 		List<Task> taskList = new LinkedList<>();
 		Connection conn = null;
 		Statement stmt = null;
@@ -53,7 +53,7 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 			
 		}
 		catch(SQLException e){
-			System.err.println("Error: SQLState = " + e.getSQLState() + " SQLCode = " + e.getErrorCode());
+			throw new StorageAccessException(e);
 		}
 		finally{
 			try {rs.close();} catch (Exception e)	{/*ignored*/}
@@ -64,7 +64,7 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 	}
 
 	@Override
-	public int add(Task t) {
+	public int add(Task t) throws StorageAccessException {
 		int addedRecordID = -1;
 		Connection conn = null;
 		PreparedStatement stmt = null;
@@ -80,11 +80,9 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 			rs = stmt.getGeneratedKeys();
 			if(rs.next())
 				addedRecordID = rs.getInt(1);
-			rs.close();
-			stmt.close();
 		}
 		catch(SQLException e){
-			System.err.println("Error: SQLState = " + e.getSQLState() + " SQLCode = " + e.getErrorCode());
+			throw new StorageAccessException(e);
 		}
 		finally{
 			try {rs.close();} catch (Exception e)	{/*ignored*/}
@@ -95,8 +93,8 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 	}
 
 	@Override
-	public boolean markAsCompleted(int taskId) {
-		boolean success = false;
+	public int markAsCompleted(int taskId) throws StorageAccessException {
+		int result = 0;
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		try{
@@ -104,19 +102,16 @@ public class TaskRepositoryJDBC implements ITaskRepository {
 			stmt = conn.prepareStatement("update tasklist_db.tasks set completed=? where id=?");
 			stmt.setBoolean(1, true);
 			stmt.setInt(2, taskId);
-			int r = stmt.executeUpdate();
-			if(r > 0)
-				success = true;
-			stmt.close();
+			result = stmt.executeUpdate();
 		}
 		catch(SQLException e){
-			System.err.println("Error: SQLState = " + e.getSQLState() + " SQLCode = " + e.getErrorCode());
+			throw new StorageAccessException(e);
 		}
 		finally{
 			try {stmt.close();} catch (Exception e)	{/*ignored*/}
 			try {conn.close();} catch (Exception e)	{/*ignored*/}
 		}
-		return success;
+		return result;
 	}
 
 }

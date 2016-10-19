@@ -2,10 +2,10 @@ package app.tasklist;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import app.tasklist.model.Priority;
 import app.tasklist.model.Task;
@@ -17,33 +17,42 @@ public class ConsoleView {
 	private Priority[] priorities;
 	
 	
-	public ConsoleView(BufferedReader br, String datePattern,Priority[] priorities) {
+	public ConsoleView(BufferedReader br, String datePattern, Priority[] priorities) {
 		super();
 		this.br = br;
 		this.datePattern = datePattern;
 		this.priorities = priorities;
 	}
 
-	public Map<String, String> readTask(){
+	public Task readTask(){
 		printMessage("Task Name (30 symbols): ");
-		String name = getInputString();
+		String nameInput = getInputString();
 		
 		printMessage("Deadline (" + datePattern.toUpperCase() + "): ");
-		String deadline = getInputString();
+		String deadlineInput = getInputString();
 		
 		printMessage("Priority:");
 		
 		for(int i = 0; i < priorities.length; i++){
 			printMessage(i+1 + " - " + priorities[i].name());
 		}
-		int priority = getInputInt();
+		int priority = getUserChoice(1, priorities.length);
 		
-		Map<String, String> params = new HashMap<>();
-		params.put("name", name);
-		params.put("deadline", deadline);
-		params.put("priority", Integer.toString(priority));
+		if(nameInput == null || nameInput.trim().isEmpty()){
+			printMessage("Name cannot be empty");
+			return null;
+		}
 		
-		return params;
+		SimpleDateFormat df = new SimpleDateFormat(datePattern);
+		Date deadline = null;
+		try {
+			deadline = df.parse(deadlineInput);
+		} catch (ParseException e) {
+			printError(e.getMessage());
+			return null;
+		}
+		
+		return new Task(nameInput, deadline, priorities[priority-1]);
 	}
 	
 	public void printMainMenu(){
@@ -56,7 +65,7 @@ public class ConsoleView {
 	public void printShowSubmenu(){
 		printMessage("1. Mark task as completed");
 		printMessage("2. Show completed tasks");
-		printMessage("3. Return to main");
+		printMessage("3. Return to main menu");
 	}
 	
 	public void printMessage(String message){

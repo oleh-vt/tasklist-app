@@ -3,11 +3,10 @@ package app.tasklist;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.Map;
 
 import app.tasklist.dao.DataSourceProvider;
 import app.tasklist.dao.ITaskRepository;
-import app.tasklist.dao.TaskRepositoryJDBC;
+import app.tasklist.dao.TaskRepositoryDB;
 import app.tasklist.model.Priority;
 import app.tasklist.model.Task;
 
@@ -19,9 +18,9 @@ public class Main {
 	private ConsoleView cw;
 	
 	public static void main(String[] args) {
-		ITaskRepository tr = new TaskRepositoryJDBC(DataSourceProvider.getMySqlDataSource());
+		ITaskRepository tr = new TaskRepositoryDB(DataSourceProvider.getMySqlDataSource());
 		try(BufferedReader br = new BufferedReader(new InputStreamReader(System.in))){
-			Service service = new Service(tr, dateFormat);
+			Service service = new Service(tr);
 			ConsoleView consoleView = new ConsoleView(br, dateFormat, Priority.values());
 			Main m = new Main(service, consoleView);
 			m.start(); 
@@ -41,13 +40,12 @@ public class Main {
 			int choice = cw.getUserChoice(1, 3);
 			switch(choice){
 			case 1:
-				Map<String, String> params = cw.readTask();
-				try {
-					boolean r = service.addTask(params);
-					if(r)
-						cw.printMessage("The task has been added to the list");
-				} catch (Exception e) {
-					cw.printError(e.getMessage());
+				Task t = cw.readTask();
+				if(t != null){
+					if(service.addTask(t))
+						cw.printMessage("The task successfully added");
+					else
+						cw.printError("Error occured. Try again later");
 				}
 				break;
 			case 2:
@@ -62,22 +60,36 @@ public class Main {
 	
 	 void tasksSubmenu(){
 		while(true){
-			boolean completedOnly = false;
-			List<Task> taskList = service.getTaskList(completedOnly);
+			List<Task> taskList = service.getTaskList();
+			if(taskList == null){
+				cw.printError("Error occured. Try again later");
+				return;
+			}
+			if(taskList.isEmpty()){
+				cw.printMessage("There are no any tasks in the list");
+			}
 			cw.printTasks(taskList);
 			cw.printShowSubmenu();
 			int ch = cw.getUserChoice(1, 3);
+			
 			switch(ch){
 			case 1:
 				cw.printMessage("Enter task id: ");
 				int id = cw.getInputInt();
 				if(!service.markCompleted(id))
-					cw.printError("Selected task was not modified. Check entered ID");
+					cw.printError("Selected task has already been marked as done or provided ID is incorrect. Check entered ID");
 				break;
 			case 2:
-				completedOnly = true;
+				boolean completedOnly = true;
 				taskList = service.getTaskList(completedOnly);
-				cw.printTasks(taskList);
+				if(taskList == null){
+					cw.printError("Error occured. Try again later");
+					return;
+				}
+				if(!taskList.isEmpty())
+					cw.printTasks(taskList);
+				else
+					cw.printMessage("There are no completed tasks");
 				cw.printMessage("Press Enter to continue...");
 				cw.getInputString();
 				break;
