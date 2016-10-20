@@ -30,10 +30,12 @@ public class TaskRepositoryDB implements ITaskRepository {
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
+		
 		try{
 			conn = ds.getConnection();
 			stmt = conn.createStatement();
-			rs = stmt.executeQuery("select * from tasklist_db.tasks where completed=" + Boolean.toString(completedOnly));
+			String tableName = completedOnly ? "tasklist_db.tasks_completed" : "tasklist_db.tasks";
+			rs = stmt.executeQuery("select * from " + tableName);
 			while(rs.next()){
 				Task task = new Task();
 				
@@ -46,8 +48,7 @@ public class TaskRepositoryDB implements ITaskRepository {
 				String priority = rs.getString("PRIORITY");
 				task.setPriority(Priority.valueOf(priority.toUpperCase()));
 				
-				task.setCompleted(rs.getBoolean("COMPLETED"));
-				
+				//task.setCompleted(rs.getBoolean("COMPLETED"));
 				taskList.add(task);
 			}
 			
@@ -93,25 +94,50 @@ public class TaskRepositoryDB implements ITaskRepository {
 	}
 
 	@Override
-	public int markAsCompleted(int taskId) throws StorageAccessException {
-		int result = 0;
+	public boolean markAsCompleted(Task t) throws StorageAccessException {
+		//int result = 0;
 		Connection conn = null;
-		PreparedStatement stmt = null;
+		PreparedStatement stmtIns = null;
+		PreparedStatement stmtDel = null;
 		try{
 			conn = ds.getConnection();
-			stmt = conn.prepareStatement("update tasklist_db.tasks set completed=? where id=?");
-			stmt.setBoolean(1, true);
-			stmt.setInt(2, taskId);
-			result = stmt.executeUpdate();
+			conn.setAutoCommit(false);
+			stmtIns = conn.prepareStatement("insert into tasklist_db.tasks_completed (id, name, deadline, priority) "
+																										+ "values (?, ?, ?, ?)");
+			stmtIns.setInt(1, t.getId());
+			stmtIns.setString(2, t.getName());
+			stmtIns.setTimestamp(3, new Timestamp(t.getDeadline().getTime()));
+			stmtIns.setString(4, t.getPriority().name().toLowerCase());
+			
+			stmtDel = conn.prepareStatement("delete from tasklist_db.tasks where id=?");
+			stmtDel.setInt(1, t.getId());
+			
+			int delRows = stmtDel.executeUpdate();
+			int insRows = stmtIns.executeUpdate();
+			
+			System.out.println("Deleted Rows: " + delRows);
+			System.out.println("Inserted Rows: " + insRows);
+			
+			if(delRows != insRows){
+				conn.rollback();
+				return false;
+			}
+			
+			conn.commit();
+			conn.setAutoCommit(true);
+			
+			return true;
 		}
 		catch(SQLException e){
+			try {conn.rollback();} catch (Exception ex)	{/*ignored*/}
 			throw new StorageAccessException(e);
 		}
 		finally{
-			try {stmt.close();} catch (Exception e)	{/*ignored*/}
+			try {stmtDel.close();} catch (Exception e)	{/*ignored*/}
+			try {stmtIns.close();} catch (Exception e)	{/*ignored*/}
 			try {conn.close();} catch (Exception e)	{/*ignored*/}
 		}
-		return result;
+		//return result;
 	}
 
 }

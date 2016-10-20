@@ -77,10 +77,14 @@ public class ConsoleView {
 	}
 	
 	void printTasks(List<Task> taskList){
+		printTasks(taskList, false);
+	}
+	
+	void printTasks(List<Task> taskList, boolean completedOnly){
 		Date now = new Date();
 		String overdue = "";
 		for(Task t : taskList){
-			overdue = (!t.isCompleted() && now.after(t.getDeadline())) ? "overdue" : "";
+			overdue = (!completedOnly && now.after(t.getDeadline())) ? "overdue" : "";
 			System.out.format("%1$5d  %2$-30s  %3$tY-%3$tm-%3$td %3$tH:%3$tM  %4$-10s %5$-10s", 
 					t.getId(), t.getName(), t.getDeadline(), t.getPriority(), overdue);
 			System.out.println();
@@ -91,15 +95,12 @@ public class ConsoleView {
 	public int getUserChoice(int firstOption, int lastOption){
 		int choice = -1; boolean success = false;
 		while(!success){
-			try{
-				choice = getInputInt();
-				if(choice < firstOption || choice > lastOption)
-					throw new Exception("Please select in a range [" + firstOption + ".." + lastOption + "]");
-				success = true;
+			choice = getInputInt();
+			if(choice < firstOption || choice > lastOption){
+				printError("Illegal input: Please select in a range [" + firstOption + ".." + lastOption + "]");
+				continue;
 			}
-			catch(Exception e){
-				printError("Error: " + e.getMessage());
-			}
+			success = true;
 		}
 		return choice;
 	}

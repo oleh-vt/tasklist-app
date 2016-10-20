@@ -7,7 +7,7 @@ public class Task {
 	private String name;
 	private Date deadline;
 	private Priority priority = Priority.MEDIUM;
-	private boolean completed;
+	//private boolean completed;
 	
 	public Task() {
 		super();
@@ -52,18 +52,18 @@ public class Task {
 		this.priority = priority;
 	}
 
-	public boolean isCompleted() {
-		return completed;
-	}
-
-	public void setCompleted(boolean completed) {
-		this.completed = completed;
-	}
+//	public boolean isCompleted() {
+//		return completed;
+//	}
+//
+//	public void setCompleted(boolean completed) {
+//		this.completed = completed;
+//	}
 
 	@Override
 	public String toString() {
 		return "ID: " + id + ", Name: " + name + ", Deadline: " + deadline.toString() +
-				", Priority: " + priority.name() + ", Completed: " + completed;
+				", Priority: " + priority.name();// + ", Completed: " + completed;
 	}
 
 }

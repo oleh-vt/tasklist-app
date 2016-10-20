@@ -60,8 +60,8 @@ public class Service {
 			Task curr = iter.next();
 			if(curr.getId() == taskId){
 				try {
-					int result = taskRepo.markAsCompleted(taskId);
-					if(result > 0){
+					boolean success = taskRepo.markAsCompleted(curr);
+					if(success){
 						iter.remove();
 						return true;
 					}

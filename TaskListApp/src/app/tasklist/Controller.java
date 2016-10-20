@@ -68,7 +68,7 @@ public class Controller {
 					return;
 				}
 				if(!taskList.isEmpty())
-					cw.printTasks(taskList);
+					cw.printTasks(taskList, completedOnly);
 				else
 					cw.printMessage("There are no completed tasks");
 				cw.printMessage("Press Enter to continue...");
