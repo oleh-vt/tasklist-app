@@ -17,17 +17,6 @@ public class Service {
 		this.taskList = getTaskList(false);
 	}
 	
-	public List<Task> getTaskList(){	
-		if(taskList == null){
-			try {
-				taskList = taskRepo.getTasks(false);
-			} catch (StorageAccessException e) {
-				//e.printStackTrace();
-			}
-		}
-		return taskList;
-	}
-	
 	public List<Task> getTaskList(boolean completedOnly){
 		List<Task> list = null;
 		try {

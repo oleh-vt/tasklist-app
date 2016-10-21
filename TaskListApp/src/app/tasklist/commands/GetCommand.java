@@ -14,11 +14,8 @@ public class GetCommand implements IServiceCommand {
 	}
 
 	@Override
-	public Result<? extends Object> execute(Service s) {
-		List<Task> list = s.getTaskList(completedOnly);
-		Result<List<Task>> r = new Result<>(list);
-		//r.setData(t);
-		return r;
+	public Object execute(Service s) {
+		return s.getTaskList(completedOnly);
 	}
 
 }

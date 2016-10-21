@@ -36,22 +36,6 @@ public class InputManager {
 		inputValues.put("priority", Integer.toString(priority));
 		
 		return inputValues;
-		
-//		if(nameInput == null || nameInput.trim().isEmpty()){
-//			OutputManager.printMessage("Name cannot be empty");
-//			return null;
-//		}
-//		
-//		SimpleDateFormat df = new SimpleDateFormat(datePattern);
-//		Date deadline = null;
-//		try {
-//			deadline = df.parse(deadlineInput);
-//		} catch (ParseException e) {
-//			OutputManager.printError(e.getMessage());
-//			return null;
-//		}
-		
-		//return new Task(nameInput, deadline, priorities[priority-1]);
 	}
 	
 	public int getUserChoice(int firstOption, int lastOption){

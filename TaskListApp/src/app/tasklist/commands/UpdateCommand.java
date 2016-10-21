@@ -11,11 +11,8 @@ public class UpdateCommand implements IServiceCommand {
 	}
 
 	@Override
-	public Result<? extends Object> execute(Service s) {
-		boolean res = s.markCompleted(taskId);
-		Result<Boolean> r = new Result<>(res);
-		//r.setData(res);
-		return r;
+	public Object execute(Service s) {
+		return s.markCompleted(taskId);
 	}
 
 }
