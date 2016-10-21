@@ -18,6 +18,7 @@ public class Main {
 			ConsoleView consoleView = new ConsoleView(br, dateFormat, Priority.values());
 			Service service = new Service(tr);
 			Controller ctrlr = new Controller(service, consoleView);
+			consoleView.setController(ctrlr);
 			ctrlr.start(); 
 		}
 		catch(Exception e){/**/}

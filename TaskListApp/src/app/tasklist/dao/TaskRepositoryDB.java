@@ -115,9 +115,6 @@ public class TaskRepositoryDB implements ITaskRepository {
 			int delRows = stmtDel.executeUpdate();
 			int insRows = stmtIns.executeUpdate();
 			
-			System.out.println("Deleted Rows: " + delRows);
-			System.out.println("Inserted Rows: " + insRows);
-			
 			if(delRows != insRows){
 				conn.rollback();
 				return false;
@@ -137,7 +134,6 @@ public class TaskRepositoryDB implements ITaskRepository {
 			try {stmtIns.close();} catch (Exception e)	{/*ignored*/}
 			try {conn.close();} catch (Exception e)	{/*ignored*/}
 		}
-		//return result;
 	}
 
 }
